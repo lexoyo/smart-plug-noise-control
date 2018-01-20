@@ -15,13 +15,16 @@ function plugSend(command) {
 }
 plugSend('on');
 
-//const clapConfig = {
-// AUDIO_SOURCE: 'alsa hw:1,0'// default for linux
-//};
-//clapDetector.start(clapConfig);
-// clapDetector.updateConfig({CLAP_ENERGY_THRESHOLD: 0.2});
-
-clapDetector.start();
+const clapConfig = {
+  AUDIO_SOURCE: 'alsa hw:0,0',
+        DETECTION_PERCENTAGE_START : '0.1%',
+        DETECTION_PERCENTAGE_END: '10%',
+        CLAP_AMPLITUDE_THRESHOLD: 0.007,
+        CLAP_ENERGY_THRESHOLD: 30,
+        CLAP_MAX_DURATION: 1500,
+};
+clapDetector.start(clapConfig);
+// clapDetector.start();
 
 let nextSend = 'off';
 clapDetector.onClaps(2, 1000, function(delay) {
@@ -29,5 +32,4 @@ clapDetector.onClaps(2, 1000, function(delay) {
   plugSend(nextSend);
 	nextSend = nextSend === 'on' ? 'off' : 'on';
 });
-
 
