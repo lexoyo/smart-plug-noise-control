@@ -1,0 +1,15 @@
+{
+  "name": "smartplug",
+  "version": "1.0.0",
+  "description": "",
+  "main": "edimax-test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "clap-detector": "^0.4.1",
+    "python-shell": "^0.4.0"
+  }
+}
