@@ -1,13 +1,13 @@
 const PythonShell = require('python-shell');
-const clapDetector = require('clap-detector');
 
 const plugIp = process.env.PLUG_IP;
 const plugPass = process.env.PLUG_PASS;
-if(!plugIp || !plugPass) throw 'smart plug IP and password required';
+const sleep = process.env.SLEEP_TIME_MS;
+if(!plugIp || !plugPass || !sleep) throw 'env vars: smart plug IP and password and time required (PLUG_IP, PLUG_PASS, SLEEP_TIME_MS)';
 console.log(plugIp, plugPass);
 
 function plugSend(command) {
-  console.log('command:', `plug.py ${command} ${plugIp} ${plugPass}`);
+  console.log('plugSend', command, `plug.py ${command} ${plugIp} ${plugPass}`);
 	PythonShell.run('plug.py', {args:[command, plugIp, plugPass]}, function (err) {
 		if (err) throw err;
 		console.log('Done.');
@@ -15,19 +15,34 @@ function plugSend(command) {
 }
 plugSend('on');
 
-//const clapConfig = {
-// AUDIO_SOURCE: 'alsa hw:1,0'// default for linux
-//};
-//clapDetector.start(clapConfig);
-// clapDetector.updateConfig({CLAP_ENERGY_THRESHOLD: 0.2});
+let interval = null;
+let isOff = false;
+function wait() {
+	console.log('wait', isOff, interval === null);
+	if(isOff) plugSend('on');
+	isOff = false;
+	if(interval) clearTimeout(interval);
+	interval = setTimeout(() => {
+		plugSend('off');
+		isOff = true;
+	}, sleep);
+}
+const { exec } = require('child_process');
+const audioSource = 'alsa hw:0,0';
+const command = `./sox.sh ${audioSource}`;
+function listen() {
+	console.log('command:', command);
 
-clapDetector.start();
-
-let nextSend = 'off';
-clapDetector.onClaps(2, 1000, function(delay) {
-  console.log('claps!!');
-  plugSend(nextSend);
-	nextSend = nextSend === 'on' ? 'off' : 'on';
-});
+	exec(command, (err, stdout, stderr) => {
+		  if (err) {
+			      console.error(err);
+			      return;
+			    }
+		wait();
+		listen();
+	});
+}
+wait();
+listen();
 
 
